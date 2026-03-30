@@ -174,6 +174,7 @@ enum ConvTypes {
 };
 constexpr int NUM_CONV_TYPES = (int) ConvTypes::CONV_LAST;
 
+// TODO: DPP may not need to track all these as it does not have support to it
 enum ApiTypes {
   API_DRIVER = 0,
   API_RUNTIME,
@@ -391,81 +392,10 @@ enum cudaVersions {
   CUFILE_LATEST = CUFILE_1170,
 };
 
-enum hipVersions {
-  HIP_0 = 0, // Unknown version
-  HIP_1050 = 1050,
-  HIP_1051 = 1051,
-  HIP_1052 = 1052,
-  HIP_1060 = 1060,
-  HIP_1061 = 1061,
-  HIP_1064 = 1064,
-  HIP_1070 = 1070,
-  HIP_1071 = 1071,
-  HIP_1080 = 1080,
-  HIP_1082 = 1082,
-  HIP_1090 = 1090,
-  HIP_1091 = 1091,
-  HIP_1092 = 1092,
-  HIP_2000 = 2000,
-  HIP_2010 = 2010,
-  HIP_2020 = 2020,
-  HIP_2030 = 2030,
-  HIP_2040 = 2040,
-  HIP_2050 = 2050,
-  HIP_2060 = 2060,
-  HIP_2070 = 2070,
-  HIP_2072 = 2072,
-  HIP_2080 = 2080,
-  HIP_2090 = 2090,
-  HIP_2100 = 2100,
-  HIP_3000 = 3000,
-  HIP_3010 = 3010,
-  HIP_3011 = 3011,
-  HIP_3020 = 3020,
-  HIP_3021 = 3021,
-  HIP_3022 = 3022,
-  HIP_3030 = 3030,
-  HIP_3040 = 3040,
-  HIP_3050 = 3050,
-  HIP_3051 = 3051,
-  HIP_3060 = 3060,
-  HIP_3070 = 3070,
-  HIP_3080 = 3080,
-  HIP_3090 = 3090,
-  HIP_3100 = 3100,
-  HIP_4000 = 4000,
-  HIP_4010 = 4010,
-  HIP_4011 = 4011,
-  HIP_4020 = 4020,
-  HIP_4030 = 4030,
-  HIP_4040 = 4040,
-  HIP_4050 = 4050,
-  HIP_4051 = 4051,
-  HIP_4052 = 4052,
-  HIP_5000 = 5000,
-  HIP_5001 = 5001,
-  HIP_5002 = 5002,
-  HIP_5010 = 5010,
-  HIP_5011 = 5011,
-  HIP_5020 = 5020,
-  HIP_5030 = 5030,
-  HIP_5040 = 5040,
-  HIP_5050 = 5050,
-  HIP_5060 = 5060,
-  HIP_5070 = 5070,
-  HIP_6000 = 6000,
-  HIP_6002 = 6002,
-  HIP_6010 = 6010,
-  HIP_6011 = 6011,
-  HIP_6020 = 6020,
-  HIP_6030 = 6030,
-  HIP_6040 = 6040,
-  HIP_7000 = 7000,
-  HIP_7010 = 7010,
-  HIP_7020 = 7020,
-  HIP_7120 = 7120,
-  HIP_8000 = 8000,
-  HIP_LATEST = HIP_8000,
+enum dppVersions {
+  DPP_0 = 0, // Unknown version
+  DPP_1050 = 1050,
+  DPP_LATEST = 8000,
 };
 
 struct cudaAPIversions {
@@ -474,14 +404,14 @@ struct cudaAPIversions {
   cudaVersions removed = CUDA_0;
 };
 
-struct hipAPIversions {
-  hipVersions appeared = HIP_0;
-  hipVersions deprecated = HIP_0;
-  hipVersions removed = HIP_0;
-  hipVersions experimental = HIP_0;
+struct dppAPIversions {
+  dppVersions appeared = DPP_0;
+  dppVersions deprecated = DPP_0;
+  dppVersions removed = DPP_0;
+  dppVersions experimental = DPP_0;
 };
 
-typedef std::list<hipVersions> hipAPIChangedVersions;
+typedef std::list<dppVersions> dppAPIChangedVersions;
 typedef std::list<cudaVersions> cudaAPIChangedVersions;
 typedef std::list<cudaVersions> cudaAPIUnsupportedVersions;
 
@@ -509,8 +439,8 @@ extern const std::vector<cudaVersions> CUDA_130_cuFile_version;
 extern const std::vector<cudaVersions> CUDA_131_cuFile_version;
 extern const std::vector<cudaVersions> Empty_vector;
 
-struct hipCounter {
-  llvm::StringRef hipName;
+struct dppCounter {
+  llvm::StringRef dppName;
   llvm::StringRef rocName;
   ConvTypes type = CONV_ERROR;
   ApiTypes apiType = API_DRIVER;
@@ -529,7 +459,7 @@ private:
   int convTypeCounters[NUM_CONV_TYPES] = {};
 
 public:
-  void incrementCounter(const hipCounter &counter, const std::string &name);
+  void incrementCounter(const dppCounter &counter, const std::string &name);
   // Add the counters from `other` onto the counters of this object.
   void add(const StatCounter &other);
   int getConvSum();
@@ -557,7 +487,7 @@ class Statistics {
 
 public:
   Statistics(const std::string &name);
-  void incrementCounter(const hipCounter &counter, const std::string &name);
+  void incrementCounter(const dppCounter &counter, const std::string &name);
   // Add the counters from `other` onto the counters of this object.
   void add(const Statistics &other);
   void lineTouched(unsigned int lineNumber);
@@ -594,45 +524,45 @@ public:
     */
   static void setActive(const std::string &name);
   // Check the counter and option TranslateToRoc whether it should be translated to Roc or not.
-  static bool isToRoc(const hipCounter &counter);
+  static bool isToRoc(const dppCounter &counter);
   // Check the counter and option TranslateToMIOpen whether it should be translated to MIOpen or not.
-  static bool isToMIOpen(const hipCounter &counter);
+  static bool isToMIOpen(const dppCounter &counter);
   // Check whether the counter is HIP_EXPERIMENTAL or not.
-  static bool isHipExperimental(const hipCounter &counter);
+  static bool isHipExperimental(const dppCounter &counter);
   // Check whether the counter is HIP_PARTIALLY_SUPPORTED or not.
-  static bool isHipPartiallySupported(const hipCounter &counter);
+  static bool isHipPartiallySupported(const dppCounter &counter);
   // Check whether the counter is HIP_UNSUPPORTED or not.
-  static bool isHipUnsupported(const hipCounter &counter);
+  static bool isHipUnsupported(const dppCounter &counter);
   // Check whether the counter is ROC_UNSUPPORTED or not.
-  static bool isRocUnsupported(const hipCounter &counter);
+  static bool isRocUnsupported(const dppCounter &counter);
   // Check whether the counter is ROC_PARTIALLY_SUPPORTED or not.
-  static bool isRocPartiallySupported(const hipCounter &counter);
+  static bool isRocPartiallySupported(const dppCounter &counter);
   // Check whether the counter is ROC_UNSUPPORTED/HIP_UNSUPPORTED/UNSUPPORTED or not.
-  static bool isUnsupported(const hipCounter &counter);
+  static bool isUnsupported(const dppCounter &counter);
   // Check whether the counter is CUDA_DEPRECATED or not.
-  static bool isCudaDeprecated(const hipCounter &counter);
+  static bool isCudaDeprecated(const dppCounter &counter);
   // Check whether the counter is HIP_DEPRECATED or not.
-  static bool isHipDeprecated(const hipCounter &counter);
+  static bool isHipDeprecated(const dppCounter &counter);
   // Check whether the counter is ROC_DEPRECATED or not.
-  static bool isRocDeprecated(const hipCounter &counter);
+  static bool isRocDeprecated(const dppCounter &counter);
   // Check whether the counter is DEPRECATED or not.
-  static bool isDeprecated(const hipCounter &counter);
+  static bool isDeprecated(const dppCounter &counter);
   // Check whether the counter is CUDA_REMOVED or not.
-  static bool isCudaRemoved(const hipCounter &counter);
+  static bool isCudaRemoved(const dppCounter &counter);
   // Check whether the counter is HIP_REMOVED or not.
-  static bool isHipRemoved(const hipCounter &counter);
+  static bool isHipRemoved(const dppCounter &counter);
   // Check whether the counter is ROC_REMOVED or not.
-  static bool isRocRemoved(const hipCounter &counter);
+  static bool isRocRemoved(const dppCounter &counter);
   // Check whether the counter is REMOVED or not.
-  static bool isRemoved(const hipCounter &counter);
+  static bool isRemoved(const dppCounter &counter);
   // Check whether the counter is HIP_SUPPORTED_V2_ONLY or not.
-  static bool isHipSupportedV2Only(const hipCounter &counter);
+  static bool isHipSupportedV2Only(const dppCounter &counter);
   // Check whether the counter is CUDA_OVERLOADED or not.
-  static bool isCudaOverloaded(const hipCounter &counter);
+  static bool isCudaOverloaded(const dppCounter &counter);
   // Get string CUDA version.
   static std::string getCudaVersion(const cudaVersions &ver);
-  // Get string HIP version.
-  static std::string getHipVersion(const hipVersions &ver);
+  // Get string DPP version.
+  static std::string getDppVersion(const dppVersions &ver);
   // Get CUDA version by cuFile version.
   static cudaVersions getCudaVersionForCuFileVersion(const cudaVersions &ver);
   // Get cuFile versions by CUDA version.

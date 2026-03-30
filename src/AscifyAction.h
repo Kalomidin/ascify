@@ -118,6 +118,6 @@ protected:
   // MatchCallback API entry point. Called by the AST visitor while searching the AST for things we registered an interest for.
   void run(const mat::MatchFinder::MatchResult &Result) override;
   std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI, StringRef InFile) override;
-  bool Exclude(const hipCounter &hipToken);
-  void FindAndReplace(StringRef name, clang::SourceLocation sl, const std::map<StringRef, hipCounter> &repMap, bool bReplace = true);
+  bool Exclude(const dppCounter &hipToken);
+  void FindAndReplace(StringRef name, clang::SourceLocation sl, const std::map<StringRef, dppCounter> &repMap, bool bReplace = true);
 };

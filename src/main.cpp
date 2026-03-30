@@ -306,7 +306,8 @@ bool generatePython() {
 }
 
 void printVersions() {
-  llvm::errs() << "\n" << sAscify << "Supports ROCm HIP from " << Statistics::getHipVersion(hipVersions::HIP_5000) << " up to " << Statistics::getHipVersion(hipVersions::HIP_LATEST);
+  // TODO: add ascend simt support version instead of ROC
+  llvm::errs() << "\n" << sAscify << "Supports ROCm DPP from " << Statistics::getDppVersion(dppVersions::DPP_1050) << " up to " << Statistics::getDppVersion(dppVersions::DPP_LATEST);
   llvm::errs() << "\n" << sAscify << "Supports CUDA Toolkit from " << Statistics::getCudaVersion(cudaVersions::CUDA_70) << " up to " << Statistics::getCudaVersion(cudaVersions::CUDA_LATEST);
   llvm::errs() << "\n" << sAscify << "Supports cuDNN from " << Statistics::getCudaVersion(cudaVersions::CUDNN_705) << " up to " << Statistics::getCudaVersion(cudaVersions::CUDNN_LATEST) << " \n";
 }

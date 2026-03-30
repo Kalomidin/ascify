@@ -69,6 +69,5 @@ extern cl::opt<bool> Versions;
 extern cl::opt<bool> NoUndocumented;
 extern cl::opt<bool> NoWarningsUndocumented;
 extern cl::opt<bool> AscifyAMAP;
-extern cl::opt<bool> DPPDnnSupport;
 extern cl::opt<bool> OptLocalHeaders;
 extern cl::opt<bool> OptLocalHeadersRecursive;

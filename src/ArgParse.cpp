@@ -220,12 +220,6 @@ cl::opt<std::string> ClangResourceDir("clang-resource-directory",
   cl::ZeroOrMore,
   cl::cat(ToolTemplateCategory));
 
-cl::opt<bool> DPPDnnSupport("hipdnn",
-  cl::desc("Enable/disable hipDNN hipification support; disabled by default"),
-  cl::value_desc("hipdnn"),
-  cl::init(false),
-  cl::cat(ToolTemplateCategory));
-
 cl::opt<bool> OptLocalHeaders("local-headers",
   cl::desc("Enable hipification of quoted local headers (non-recursive)"),
   cl::init(false),
@@ -263,7 +257,6 @@ const std::vector<std::string> ascifyOptions {
   std::string(NoUndocumented.ArgStr),
   std::string(NoWarningsUndocumented.ArgStr),
   std::string(AscifyAMAP.ArgStr),
-  std::string(DPPDnnSupport.ArgStr),
   std::string(OptLocalHeaders.ArgStr),
   std::string(OptLocalHeadersRecursive.ArgStr),
 };

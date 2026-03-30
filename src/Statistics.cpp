@@ -219,7 +219,7 @@ void printStat(std::ostream *csv, llvm::raw_ostream *printOut, const std::string
 
 } // Anonymous namespace
 
-void StatCounter::incrementCounter(const hipCounter &counter, const std::string &name) {
+void StatCounter::incrementCounter(const dppCounter &counter, const std::string &name) {
   counters[name]++;
   apiCounters[(int) counter.apiType]++;
   convTypeCounters[(int) counter.type]++;
@@ -289,7 +289,7 @@ Statistics::Statistics(const std::string &name): fileName(name) {
 
 ///////// Counter update routines //////////
 
-void Statistics::incrementCounter(const hipCounter &counter, const std::string &name) {
+void Statistics::incrementCounter(const dppCounter &counter, const std::string &name) {
   if (Statistics::isUnsupported(counter)) {
     unsupported.incrementCounter(counter, name);
   } else {
@@ -398,93 +398,93 @@ void Statistics::setActive(const std::string &name) {
   Statistics::currentStatistics = &stats.at(name);
 }
 
-bool Statistics::isToRoc(const hipCounter &counter) {
+bool Statistics::isToRoc(const dppCounter &counter) {
   return ((counter.apiType == API_BLAS || counter.apiType == API_DNN || counter.apiType == API_SPARSE || counter.apiType == API_SOLVER ||
            counter.apiType == API_RUNTIME || counter.apiType == API_COMPLEX || counter.apiType == API_RAND || counter.apiType == API_FILE)
           && TranslateToRoc) || isToMIOpen(counter);
 }
 
-bool Statistics::isToMIOpen(const hipCounter &counter) {
+bool Statistics::isToMIOpen(const dppCounter &counter) {
   return counter.apiType == API_DNN && TranslateToMIOpen;
 }
 
-bool Statistics::isHipExperimental(const hipCounter &counter) {
+bool Statistics::isHipExperimental(const dppCounter &counter) {
   return HIP_EXPERIMENTAL == (counter.supportDegree & HIP_EXPERIMENTAL);
 }
 
-bool Statistics::isHipPartiallySupported(const hipCounter &counter) {
+bool Statistics::isHipPartiallySupported(const dppCounter &counter) {
   return HIP_PARTIALLY_SUPPORTED == (counter.supportDegree & HIP_PARTIALLY_SUPPORTED);
 }
 
-bool Statistics::isHipUnsupported(const hipCounter &counter) {
+bool Statistics::isHipUnsupported(const dppCounter &counter) {
   return HIP_UNSUPPORTED == (counter.supportDegree & HIP_UNSUPPORTED) ||
     UNSUPPORTED == (counter.supportDegree & UNSUPPORTED);
 }
 
-bool Statistics::isRocUnsupported(const hipCounter &counter) {
+bool Statistics::isRocUnsupported(const dppCounter &counter) {
   return ROC_UNSUPPORTED == (counter.supportDegree & ROC_UNSUPPORTED) ||
     UNSUPPORTED == (counter.supportDegree & UNSUPPORTED);
 }
 
-bool Statistics::isRocPartiallySupported(const hipCounter &counter) {
+bool Statistics::isRocPartiallySupported(const dppCounter &counter) {
   return ROC_PARTIALLY_SUPPORTED == (counter.supportDegree & ROC_PARTIALLY_SUPPORTED);
 }
 
-bool Statistics::isUnsupported(const hipCounter &counter) {
+bool Statistics::isUnsupported(const dppCounter &counter) {
   if (UNSUPPORTED == (counter.supportDegree & UNSUPPORTED)) return true;
   if (Statistics::isToRoc(counter)) return Statistics::isRocUnsupported(counter);
   else return Statistics::isHipUnsupported(counter);
 }
 
-bool Statistics::isCudaDeprecated(const hipCounter &counter) {
+bool Statistics::isCudaDeprecated(const dppCounter &counter) {
   return CUDA_DEPRECATED == (counter.supportDegree & CUDA_DEPRECATED) ||
          DEPRECATED == (counter.supportDegree & DEPRECATED);
 }
 
-bool Statistics::isHipDeprecated(const hipCounter &counter) {
+bool Statistics::isHipDeprecated(const dppCounter &counter) {
   return HIP_DEPRECATED == (counter.supportDegree & HIP_DEPRECATED) ||
          DEPRECATED == (counter.supportDegree & DEPRECATED);
 }
 
-bool Statistics::isRocDeprecated(const hipCounter &counter) {
+bool Statistics::isRocDeprecated(const dppCounter &counter) {
   return ROC_DEPRECATED == (counter.supportDegree & ROC_DEPRECATED) ||
          DEPRECATED == (counter.supportDegree & DEPRECATED);
 }
 
-bool Statistics::isDeprecated(const hipCounter &counter) {
+bool Statistics::isDeprecated(const dppCounter &counter) {
   return DEPRECATED == (counter.supportDegree & DEPRECATED) || (
          CUDA_DEPRECATED == (counter.supportDegree & CUDA_DEPRECATED) &&
          HIP_DEPRECATED == (counter.supportDegree & HIP_DEPRECATED) &&
          ROC_DEPRECATED == (counter.supportDegree & ROC_DEPRECATED));
 }
 
-bool Statistics::isCudaRemoved(const hipCounter &counter) {
+bool Statistics::isCudaRemoved(const dppCounter &counter) {
   return CUDA_REMOVED == (counter.supportDegree & CUDA_REMOVED) ||
          REMOVED == (counter.supportDegree & REMOVED);
 }
 
-bool Statistics::isHipRemoved(const hipCounter &counter) {
+bool Statistics::isHipRemoved(const dppCounter &counter) {
   return HIP_REMOVED == (counter.supportDegree & HIP_REMOVED) ||
          REMOVED == (counter.supportDegree & REMOVED);
 }
 
-bool Statistics::isRocRemoved(const hipCounter &counter) {
+bool Statistics::isRocRemoved(const dppCounter &counter) {
   return ROC_REMOVED == (counter.supportDegree & ROC_REMOVED) ||
          REMOVED == (counter.supportDegree & REMOVED);
 }
 
-bool Statistics::isRemoved(const hipCounter &counter) {
+bool Statistics::isRemoved(const dppCounter &counter) {
   return REMOVED == (counter.supportDegree & REMOVED) || (
          CUDA_REMOVED == (counter.supportDegree & CUDA_REMOVED) &&
          HIP_REMOVED == (counter.supportDegree & HIP_REMOVED) &&
          ROC_REMOVED == (counter.supportDegree & ROC_REMOVED));
 }
 
-bool Statistics::isHipSupportedV2Only(const hipCounter &counter) {
+bool Statistics::isHipSupportedV2Only(const dppCounter &counter) {
   return HIP_SUPPORTED_V2_ONLY == (counter.supportDegree & HIP_SUPPORTED_V2_ONLY);
 }
 
-bool Statistics::isCudaOverloaded(const hipCounter &counter) {
+bool Statistics::isCudaOverloaded(const dppCounter &counter) {
   return CUDA_OVERLOADED == (counter.supportDegree & CUDA_OVERLOADED);
 }
 
@@ -761,82 +761,13 @@ const std::vector<cudaVersions> &Statistics::getCuFileVersionsForCudaVersion(con
   }
 }
 
-std::string Statistics::getHipVersion(const hipVersions &ver) {
+std::string Statistics::getDppVersion(const dppVersions &ver) {
   switch (ver) {
-    case HIP_0:
+    case DPP_0:
     default:       return "";
-    case HIP_1050: return "1.5.0";
-    case HIP_1051: return "1.5.1";
-    case HIP_1052: return "1.5.2";
-    case HIP_1060: return "1.6.0";
-    case HIP_1061: return "1.6.1";
-    case HIP_1064: return "1.6.4";
-    case HIP_1070: return "1.7.0";
-    case HIP_1071: return "1.7.1";
-    case HIP_1080: return "1.8.0";
-    case HIP_1082: return "1.8.2";
-    case HIP_1090: return "1.9.0";
-    case HIP_1091: return "1.9.1";
-    case HIP_1092: return "1.9.2";
-    case HIP_2000: return "2.0.0";
-    case HIP_2010: return "2.1.0";
-    case HIP_2020: return "2.2.0";
-    case HIP_2030: return "2.3.0";
-    case HIP_2040: return "2.4.0";
-    case HIP_2050: return "2.5.0";
-    case HIP_2060: return "2.6.0";
-    case HIP_2070: return "2.7.0";
-    case HIP_2072: return "2.7.2";
-    case HIP_2080: return "2.8.0";
-    case HIP_2090: return "2.9.0";
-    case HIP_2100: return "2.10.0";
-    case HIP_3000: return "3.0.0";
-    case HIP_3010: return "3.1.0";
-    case HIP_3011: return "3.1.1";
-    case HIP_3020: return "3.2.0";
-    case HIP_3021: return "3.2.1";
-    case HIP_3022: return "3.2.2";
-    case HIP_3030: return "3.3.0";
-    case HIP_3040: return "3.4.0";
-    case HIP_3050: return "3.5.0";
-    case HIP_3051: return "3.5.1";
-    case HIP_3060: return "3.6.0";
-    case HIP_3070: return "3.7.0";
-    case HIP_3080: return "3.8.0";
-    case HIP_3090: return "3.9.0";
-    case HIP_3100: return "3.10.0";
-    case HIP_4000: return "4.0.0";
-    case HIP_4010: return "4.1.0";
-    case HIP_4011: return "4.1.1";
-    case HIP_4020: return "4.2.0";
-    case HIP_4030: return "4.3.0";
-    case HIP_4040: return "4.4.0";
-    case HIP_4050: return "4.5.0";
-    case HIP_4051: return "4.5.1";
-    case HIP_4052: return "4.5.2";
-    case HIP_5000: return "5.0.0";
-    case HIP_5001: return "5.0.1";
-    case HIP_5002: return "5.0.2";
-    case HIP_5010: return "5.1.0";
-    case HIP_5011: return "5.1.1";
-    case HIP_5020: return "5.2.0";
-    case HIP_5030: return "5.3.0";
-    case HIP_5040: return "5.4.0";
-    case HIP_5050: return "5.5.0";
-    case HIP_5060: return "5.6.0";
-    case HIP_5070: return "5.7.0";
-    case HIP_6000: return "6.0.0";
-    case HIP_6002: return "6.0.2";
-    case HIP_6010: return "6.1.0";
-    case HIP_6011: return "6.1.1";
-    case HIP_6020: return "6.2.0";
-    case HIP_6030: return "6.3.0";
-    case HIP_6040: return "6.4.0";
-    case HIP_7000: return "7.0.0";
-    case HIP_7010: return "7.1.0";
-    case HIP_7020: return "7.2.0";
-    case HIP_7120: return "7.12.0";
-    case HIP_8000: return "8.0.0";
+    // TODO: fill in the actual DPP versions once we have them.
+    case DPP_1050: return "1.5.0";
+    case DPP_LATEST: return "latest";
   }
   return "";
 }

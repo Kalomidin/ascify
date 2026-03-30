@@ -33,10 +33,36 @@ THE SOFTWARE.
 #include "LLVMCompat.h"
 #include "ArgParse.h"
 #include "ImplicitCudaHeaders.h"
+#include "CUDA2DPP.h"
 
 using namespace ascify;
 
+const std::string sDPP = "DPP";
+const std::string sROC = "ROC";
+const std::string sMIOPEN = "MIOPEN";
+const std::string s_string_literal = "[string literal]";
+
 void AscifyAction::RewriteString(StringRef s, clang::SourceLocation start) {
+  auto &SM = getCompilerInstance().getSourceManager();
+  size_t begin = 0;
+  while ((begin = s.find("cu", begin)) != StringRef::npos) {
+    const size_t end = s.find_first_of(" ", begin + 4);
+    StringRef name = s.slice(begin, end);
+    const auto found = CUDA_RENAMES_MAP().find(name);
+    if (found != CUDA_RENAMES_MAP().end()) {
+      StringRef repName = Statistics::isToRoc(found->second) ? found->second.rocName : found->second.dppName;
+      dppCounter counter = {s_string_literal, "", ConvTypes::CONV_LITERAL, ApiTypes::API_RUNTIME, found->second.supportDegree};
+      Statistics::current().incrementCounter(counter, name.str());
+      if (!Statistics::isUnsupported(counter)) {
+        clang::SourceLocation sl = start.getLocWithOffset(begin + 1);
+        ct::Replacement Rep(SM, sl, name.size(), repName.str());
+        clang::FullSourceLoc fullSL(sl, SM);
+        insertReplacement(Rep, fullSL);
+      }
+    }
+    if (end == StringRef::npos) break;
+    begin = end + 1;
+  }
 }
 
 // TODO
@@ -53,13 +79,66 @@ clang::SourceLocation AscifyAction::GetSubstrLocation(const std::string &str, co
   * Otherwise, the source file is updated with the corresponding hipification.
   */
 void AscifyAction::RewriteToken(const clang::Token &t) {
+  if(!AscifyAMAP) {
+    clang::SourceRange sr(t.getLocation());
+    for(const auto &skipped: SkippedSourceRanges) {
+      if(skipped.fullyContains(sr))
+        return;
+    }
+  }
 
+  // String literals containing CUDA references need fixing.
+  if (t.is(clang::tok::string_literal)) {
+    StringRef s(t.getLiteralData(), t.getLength());
+    RewriteString(unquoteStr(s), t.getLocation());
+    return;
+  } else if (!t.isAnyIdentifier()) {
+    // If it's neither a string nor an identifier, we don't care.
+    return;
+  }
+  StringRef name = t.getRawIdentifier();
+  clang::SourceLocation sl = t.getLocation();
+  FindAndReplace(name, sl, CUDA_RENAMES_MAP());
 }
 
 void AscifyAction::FindAndReplace(StringRef name,
                                   clang::SourceLocation sl,
-                                  const std::map<StringRef, hipCounter> &repMap,
+                                  const std::map<StringRef, dppCounter> &repMap,
                                   bool bReplace) {
+  const auto found = repMap.find(name);
+  if (found == repMap.end()) {
+    // So it's an identifier, but not CUDA? Boring.
+    return;
+  }
+  Statistics::current().incrementCounter(found->second, name.str());
+  clang::DiagnosticsEngine &DE = getCompilerInstance().getDiagnostics();
+
+  // Warn about the deprecated identifier in CUDA but hipify it.
+  if (Statistics::isCudaDeprecated(found->second)) {
+    const auto ID = DE.getCustomDiagID(clang::DiagnosticsEngine::Warning, "'%0' is deprecated in CUDA.");
+    DE.Report(sl, ID) << found->first;
+  }
+
+  // TODO: Similar to hipify, add statistics analysis
+
+    // Warn about the unsupported identifier.
+  if (Statistics::isUnsupported(found->second)) {
+    std::string sWarn;
+    Statistics::isToRoc(found->second) ? sWarn = sROC : sWarn = sDPP;
+    if (Statistics::isToMIOpen(found->second))
+      sWarn = sMIOPEN;
+    const auto ID = DE.getCustomDiagID(clang::DiagnosticsEngine::Warning, "'%0' is unsupported in '%1'.");
+    DE.Report(sl, ID) << found->first << sWarn;
+    return;
+  }
+  if (!bReplace) {
+    return;
+  }
+  StringRef repName = Statistics::isToRoc(found->second) ? (found->second.rocName.empty() ? found->second.dppName : found->second.rocName) : found->second.dppName;
+  auto &SM = getCompilerInstance().getSourceManager();
+  ct::Replacement Rep(SM, sl, name.size(), repName.str());
+  clang::FullSourceLoc fullSL(sl, SM);
+  insertReplacement(Rep, fullSL);
 }
 
 namespace {
@@ -102,7 +181,7 @@ std::string stringifyZeroDefaultedArg(clang::SourceManager &SM, const clang::Exp
 
 } // anonymous namespace
 
-bool AscifyAction::Exclude(const hipCounter &hipToken) {
+bool AscifyAction::Exclude(const dppCounter &hipToken) {
   return false;
 }
 
@@ -156,8 +235,13 @@ bool AscifyAction::dataTypeSelection(const mat::MatchFinder::MatchResult &Result
 }
 
 void AscifyAction::insertReplacement(const ct::Replacement &rep, const clang::FullSourceLoc &fullSL) {
+  llcompat::insertReplacement(*replacements, rep);
+  if (PrintStats || PrintStatsCSV) {
+    rep.getLength();
+    Statistics::current().lineTouched(fullSL.getExpansionLineNumber());
+    Statistics::current().bytesChanged(rep.getLength());
+  }
 }
-
 std::unique_ptr<clang::ASTConsumer> AscifyAction::CreateASTConsumer(clang::CompilerInstance &CI, StringRef) {
   return nullptr;
 }
@@ -265,3 +349,4 @@ void AscifyAction::run(const mat::MatchFinder::MatchResult &Result) {
   if (cubUsingNamespaceDecl(Result)) return;
   if (!NoUndocumented && half2Member(Result)) return;
 }
+
