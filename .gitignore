@@ -36,7 +36,9 @@
 *.exe
 *.out
 *.app
+*.dpp
 
 # debug information files
 *.dwo
 build/
+examples/

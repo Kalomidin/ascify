@@ -138,8 +138,8 @@ bool ascifyLocalHeaders(const std::string &mainSourceAbsPath,
       continue;
     }
 
-    std::string hipOut = hdr + ".hip";
-    bool ok = ascifySingleSource(hdr, hipOut, compDB, OptionsParserPtr,
+    std::string dppOut = hdr + ".dpp";
+    bool ok = ascifySingleSource(hdr, dppOut, compDB, OptionsParserPtr,
                                   ascify_exe, mainSourceAbsPath, false);
 
     if (!ok) {
