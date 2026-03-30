@@ -25,8 +25,8 @@ THE SOFTWARE.
 // Maps CUDA header names to DPP header names
 const std::map <llvm::StringRef, dppCounter> CUDA_INCLUDE_MAP {
   // CUDA includes
-  {"cuda.h",                                                {"hip/hip_runtime.h",                                     "",                                                               CONV_INCLUDE_CUDA_MAIN_H,    API_DRIVER, 0}},
-  {"cuda_runtime.h",                                        {"hip/hip_runtime.h",                                     "",                                                               CONV_INCLUDE_CUDA_MAIN_H,    API_RUNTIME, 0}},
+  {"cuda.h",                                                {"acl/acl.h",                                     "",                                                               CONV_INCLUDE_CUDA_MAIN_H,    API_DRIVER, 0}},
+  {"cuda_runtime.h",                                        {"acl/acl.h",                                     "",                                                               CONV_INCLUDE_CUDA_MAIN_H,    API_RUNTIME, 0}},
 };
 
 const std::map<llvm::StringRef, dppCounter> &CUDA_RENAMES_MAP() {

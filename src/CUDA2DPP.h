@@ -63,5 +63,6 @@ const std::map<llvm::StringRef, dppCounter> &CUDA_RENAMES_MAP();
 namespace runtime {
   enum CUDA_RUNTIME_API_SECTIONS {
     DEVICE = 1,
+    MEMORY = 10,
   };
 }

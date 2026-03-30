@@ -37,6 +37,7 @@
 *.out
 *.app
 *.dpp
+*.log
 
 # debug information files
 *.dwo

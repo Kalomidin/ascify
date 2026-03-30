@@ -41,6 +41,8 @@ const std::string sDPP = "DPP";
 const std::string sROC = "ROC";
 const std::string sMIOPEN = "MIOPEN";
 const std::string s_string_literal = "[string literal]";
+// Matchers' names
+const StringRef sCudaLaunchKernel = "cudaLaunchKernel";
 
 void AscifyAction::RewriteString(StringRef s, clang::SourceLocation start) {
   auto &SM = getCompilerInstance().getSourceManager();
@@ -192,6 +194,46 @@ void AscifyAction::InclusionDirective(clang::SourceLocation hash_loc,
                                       clang::CharSourceRange filename_range,
                                       const clang::FileEntry*, StringRef,
                                       StringRef, const clang::Module*) {
+                                        outs() << "File included: " << file_name << "\n";
+  auto &SM = getCompilerInstance().getSourceManager();
+  if (!SM.isWrittenInMainFile(hash_loc)) return;
+  if (!firstHeader) {
+    firstHeader = true;
+    firstHeaderLoc = hash_loc;
+  }
+
+
+  const auto found = CUDA_INCLUDE_MAP.find(file_name);
+  if (found == CUDA_INCLUDE_MAP.end()) return;
+  bool exclude = Exclude(found->second);
+  Statistics::current().incrementCounter(found->second, file_name.str());
+  clang::SourceLocation sl = filename_range.getBegin();
+
+  if (Statistics::isUnsupported(found->second)) {
+    clang::DiagnosticsEngine &DE = getCompilerInstance().getDiagnostics();
+    std::string sWarn;
+    Statistics::isToRoc(found->second) ? sWarn = sROC : sWarn = sDPP;
+    if (Statistics::isToMIOpen(found->second))
+      sWarn = sMIOPEN;
+    const auto ID = DE.getCustomDiagID(clang::DiagnosticsEngine::Warning, "'%0' is unsupported header in '%1'.");
+    DE.Report(sl, ID) << found->first << sWarn;
+    return;
+  }
+  clang::StringRef newInclude;
+  // Keep the same include type that the user gave.
+  if (!exclude) {
+    clang::SmallString<128> includeBuffer;
+    llvm::StringRef name = Statistics::isToRoc(found->second) ? (found->second.rocName.empty() ? found->second.dppName : found->second.rocName) : found->second.dppName;
+    if (is_angled) newInclude = llvm::Twine("<" + name+ ">").toStringRef(includeBuffer);
+    else           newInclude = llvm::Twine("\"" + name + "\"").toStringRef(includeBuffer);
+  } else {
+    // hashLoc is location of the '#', thus replacing the whole include directive by empty newInclude starting with '#'.
+    sl = hash_loc;
+  }
+  const char *B = SM.getCharacterData(sl);
+  const char *E = SM.getCharacterData(filename_range.getEnd());
+  ct::Replacement Rep(SM, sl, E - B, newInclude.str());
+  insertReplacement(Rep, clang::FullSourceLoc{sl, SM});
 }
 
 void AscifyAction::PragmaDirective(clang::SourceLocation Loc, clang::PragmaIntroducerKind Introducer) {
@@ -199,15 +241,15 @@ void AscifyAction::PragmaDirective(clang::SourceLocation Loc, clang::PragmaIntro
 }
 
 bool AscifyAction::cudaLaunchKernel(const mat::MatchFinder::MatchResult &Result) {
-  return false;
+  return true;
 }
 
 bool AscifyAction::cudaDeviceFuncCall(const mat::MatchFinder::MatchResult &Result) {
-  return false;
+  return true;
 }
 
 bool AscifyAction::cubNamespacePrefix(const mat::MatchFinder::MatchResult &Result) {
-  return false;
+  return true;
 }
 
 bool AscifyAction::cubUsingNamespaceDecl(const mat::MatchFinder::MatchResult &Result) {
@@ -243,7 +285,10 @@ void AscifyAction::insertReplacement(const ct::Replacement &rep, const clang::Fu
   }
 }
 std::unique_ptr<clang::ASTConsumer> AscifyAction::CreateASTConsumer(clang::CompilerInstance &CI, StringRef) {
-  return nullptr;
+  Finder.reset(new mat::MatchFinder);
+  // Replace the <<<...>>> language extension with a hip kernel launch
+  Finder->addMatcher(mat::cudaKernelCallExpr(mat::isExpansionInMainFile()).bind(sCudaLaunchKernel), this);
+  return Finder->newASTConsumer();
 }
 
 void AscifyAction::Ifndef(clang::SourceLocation Loc, const clang::Token &MacroNameTok, const clang::MacroDefinition &MD) {

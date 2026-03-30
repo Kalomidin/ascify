@@ -417,7 +417,7 @@ int main(int argc, const char **argv) {
     TranslateToMIOpen = true;
   int Result = 0;
   SmallString<128> tmpFile;
-  StringRef sourceFileName, ext = "hip", csv_ext = "csv";
+  StringRef sourceFileName, ext = "dpp", csv_ext = "csv";
   std::string sTmpFileName, sSourceAbsPath;
   std::string sTmpDirAbsParh = getAbsoluteDirectoryPath(TemporaryDir, EC);
   if (EC) {
