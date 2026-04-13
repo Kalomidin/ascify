@@ -413,8 +413,6 @@ int main(int argc, const char **argv) {
   if (Examine) {
     NoOutput = PrintStats = true;
   }
-  if (TranslateToRoc)
-    TranslateToMIOpen = true;
   int Result = 0;
   SmallString<128> tmpFile;
   StringRef sourceFileName, ext = "dpp", csv_ext = "csv";

@@ -38,8 +38,6 @@ THE SOFTWARE.
 using namespace ascify;
 
 const std::string sDPP = "DPP";
-const std::string sROC = "ROC";
-const std::string sMIOPEN = "MIOPEN";
 const std::string s_string_literal = "[string literal]";
 // Matchers' names
 const StringRef sCudaLaunchKernel = "cudaLaunchKernel";
@@ -52,8 +50,8 @@ void AscifyAction::RewriteString(StringRef s, clang::SourceLocation start) {
     StringRef name = s.slice(begin, end);
     const auto found = CUDA_RENAMES_MAP().find(name);
     if (found != CUDA_RENAMES_MAP().end()) {
-      StringRef repName = Statistics::isToRoc(found->second) ? found->second.rocName : found->second.dppName;
-      dppCounter counter = {s_string_literal, "", ConvTypes::CONV_LITERAL, ApiTypes::API_RUNTIME, found->second.supportDegree};
+      StringRef repName = found->second.dppName;
+      dppCounter counter = {s_string_literal, ConvTypes::CONV_LITERAL, ApiTypes::API_RUNTIME, found->second.supportDegree};
       Statistics::current().incrementCounter(counter, name.str());
       if (!Statistics::isUnsupported(counter)) {
         clang::SourceLocation sl = start.getLocWithOffset(begin + 1);
@@ -125,10 +123,7 @@ void AscifyAction::FindAndReplace(StringRef name,
 
     // Warn about the unsupported identifier.
   if (Statistics::isUnsupported(found->second)) {
-    std::string sWarn;
-    Statistics::isToRoc(found->second) ? sWarn = sROC : sWarn = sDPP;
-    if (Statistics::isToMIOpen(found->second))
-      sWarn = sMIOPEN;
+    std::string sWarn = sDPP;
     const auto ID = DE.getCustomDiagID(clang::DiagnosticsEngine::Warning, "'%0' is unsupported in '%1'.");
     DE.Report(sl, ID) << found->first << sWarn;
     return;
@@ -136,7 +131,7 @@ void AscifyAction::FindAndReplace(StringRef name,
   if (!bReplace) {
     return;
   }
-  StringRef repName = Statistics::isToRoc(found->second) ? (found->second.rocName.empty() ? found->second.dppName : found->second.rocName) : found->second.dppName;
+  StringRef repName = found->second.dppName;
   auto &SM = getCompilerInstance().getSourceManager();
   ct::Replacement Rep(SM, sl, name.size(), repName.str());
   clang::FullSourceLoc fullSL(sl, SM);
@@ -211,10 +206,7 @@ void AscifyAction::InclusionDirective(clang::SourceLocation hash_loc,
 
   if (Statistics::isUnsupported(found->second)) {
     clang::DiagnosticsEngine &DE = getCompilerInstance().getDiagnostics();
-    std::string sWarn;
-    Statistics::isToRoc(found->second) ? sWarn = sROC : sWarn = sDPP;
-    if (Statistics::isToMIOpen(found->second))
-      sWarn = sMIOPEN;
+    std::string sWarn = sDPP;
     const auto ID = DE.getCustomDiagID(clang::DiagnosticsEngine::Warning, "'%0' is unsupported header in '%1'.");
     DE.Report(sl, ID) << found->first << sWarn;
     return;
@@ -223,7 +215,7 @@ void AscifyAction::InclusionDirective(clang::SourceLocation hash_loc,
   // Keep the same include type that the user gave.
   if (!exclude) {
     clang::SmallString<128> includeBuffer;
-    llvm::StringRef name = Statistics::isToRoc(found->second) ? (found->second.rocName.empty() ? found->second.dppName : found->second.rocName) : found->second.dppName;
+    llvm::StringRef name = found->second.dppName;
     if (is_angled) newInclude = llvm::Twine("<" + name+ ">").toStringRef(includeBuffer);
     else           newInclude = llvm::Twine("\"" + name + "\"").toStringRef(includeBuffer);
   } else {

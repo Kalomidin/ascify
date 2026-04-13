@@ -196,21 +196,17 @@ constexpr int NUM_API_TYPES = (int) ApiTypes::API_LAST;
 enum SupportDegree {
   FULL = 0x0,
   HIP_UNSUPPORTED = 0x1,
-  ROC_UNSUPPORTED = 0x2,
   UNSUPPORTED = 0x4,
   CUDA_DEPRECATED = 0x8,
   HIP_DEPRECATED = 0x10,
-  ROC_DEPRECATED = 0x20,
   DEPRECATED = 0x40,
   CUDA_REMOVED = 0x80,
   HIP_REMOVED = 0x100,
-  ROC_REMOVED = 0x200,
   REMOVED = 0x400,
   HIP_EXPERIMENTAL = 0x800,
   HIP_SUPPORTED_V2_ONLY = 0x1000,
   CUDA_OVERLOADED = 0x2000,
   HIP_PARTIALLY_SUPPORTED = 0x4000,
-  ROC_PARTIALLY_SUPPORTED = 0x8000,
 };
 
 enum cudaVersions {
@@ -441,7 +437,6 @@ extern const std::vector<cudaVersions> Empty_vector;
 
 struct dppCounter {
   llvm::StringRef dppName;
-  llvm::StringRef rocName;
   ConvTypes type = CONV_ERROR;
   ApiTypes apiType = API_DRIVER;
   unsigned int apiSection = 1;
@@ -523,36 +518,24 @@ public:
     * timestamp into the currently active one.
     */
   static void setActive(const std::string &name);
-  // Check the counter and option TranslateToRoc whether it should be translated to Roc or not.
-  static bool isToRoc(const dppCounter &counter);
-  // Check the counter and option TranslateToMIOpen whether it should be translated to MIOpen or not.
-  static bool isToMIOpen(const dppCounter &counter);
   // Check whether the counter is HIP_EXPERIMENTAL or not.
   static bool isHipExperimental(const dppCounter &counter);
   // Check whether the counter is HIP_PARTIALLY_SUPPORTED or not.
   static bool isHipPartiallySupported(const dppCounter &counter);
   // Check whether the counter is HIP_UNSUPPORTED or not.
   static bool isHipUnsupported(const dppCounter &counter);
-  // Check whether the counter is ROC_UNSUPPORTED or not.
-  static bool isRocUnsupported(const dppCounter &counter);
-  // Check whether the counter is ROC_PARTIALLY_SUPPORTED or not.
-  static bool isRocPartiallySupported(const dppCounter &counter);
-  // Check whether the counter is ROC_UNSUPPORTED/HIP_UNSUPPORTED/UNSUPPORTED or not.
+  // Check whether the counter is HIP_UNSUPPORTED/UNSUPPORTED or not.
   static bool isUnsupported(const dppCounter &counter);
   // Check whether the counter is CUDA_DEPRECATED or not.
   static bool isCudaDeprecated(const dppCounter &counter);
   // Check whether the counter is HIP_DEPRECATED or not.
   static bool isHipDeprecated(const dppCounter &counter);
-  // Check whether the counter is ROC_DEPRECATED or not.
-  static bool isRocDeprecated(const dppCounter &counter);
   // Check whether the counter is DEPRECATED or not.
   static bool isDeprecated(const dppCounter &counter);
   // Check whether the counter is CUDA_REMOVED or not.
   static bool isCudaRemoved(const dppCounter &counter);
   // Check whether the counter is HIP_REMOVED or not.
   static bool isHipRemoved(const dppCounter &counter);
-  // Check whether the counter is ROC_REMOVED or not.
-  static bool isRocRemoved(const dppCounter &counter);
   // Check whether the counter is REMOVED or not.
   static bool isRemoved(const dppCounter &counter);
   // Check whether the counter is HIP_SUPPORTED_V2_ONLY or not.

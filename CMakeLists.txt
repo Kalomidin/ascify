@@ -233,7 +233,6 @@ if (NOT ASCIFY_CLANG_TESTS_ONLY)
         set_target_properties(ascify-clang PROPERTIES LINK_FLAGS "-Wl,--enable-new-dtags -Wl,--rpath,\\$ORIGIN/../lib")
     endif()
 
-    # set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/rocm" CACHE PATH "HIP Package Installation Path")
     # set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/packages/ascify-clang)
 
     # configure_file(packaging/ascify-clang.txt ${BUILD_DIR}/CMakeLists.txt @ONLY)

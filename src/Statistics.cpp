@@ -398,16 +398,6 @@ void Statistics::setActive(const std::string &name) {
   Statistics::currentStatistics = &stats.at(name);
 }
 
-bool Statistics::isToRoc(const dppCounter &counter) {
-  return ((counter.apiType == API_BLAS || counter.apiType == API_DNN || counter.apiType == API_SPARSE || counter.apiType == API_SOLVER ||
-           counter.apiType == API_RUNTIME || counter.apiType == API_COMPLEX || counter.apiType == API_RAND || counter.apiType == API_FILE)
-          && TranslateToRoc) || isToMIOpen(counter);
-}
-
-bool Statistics::isToMIOpen(const dppCounter &counter) {
-  return counter.apiType == API_DNN && TranslateToMIOpen;
-}
-
 bool Statistics::isHipExperimental(const dppCounter &counter) {
   return HIP_EXPERIMENTAL == (counter.supportDegree & HIP_EXPERIMENTAL);
 }
@@ -421,19 +411,9 @@ bool Statistics::isHipUnsupported(const dppCounter &counter) {
     UNSUPPORTED == (counter.supportDegree & UNSUPPORTED);
 }
 
-bool Statistics::isRocUnsupported(const dppCounter &counter) {
-  return ROC_UNSUPPORTED == (counter.supportDegree & ROC_UNSUPPORTED) ||
-    UNSUPPORTED == (counter.supportDegree & UNSUPPORTED);
-}
-
-bool Statistics::isRocPartiallySupported(const dppCounter &counter) {
-  return ROC_PARTIALLY_SUPPORTED == (counter.supportDegree & ROC_PARTIALLY_SUPPORTED);
-}
-
 bool Statistics::isUnsupported(const dppCounter &counter) {
   if (UNSUPPORTED == (counter.supportDegree & UNSUPPORTED)) return true;
-  if (Statistics::isToRoc(counter)) return Statistics::isRocUnsupported(counter);
-  else return Statistics::isHipUnsupported(counter);
+  return Statistics::isHipUnsupported(counter);
 }
 
 bool Statistics::isCudaDeprecated(const dppCounter &counter) {
@@ -446,16 +426,10 @@ bool Statistics::isHipDeprecated(const dppCounter &counter) {
          DEPRECATED == (counter.supportDegree & DEPRECATED);
 }
 
-bool Statistics::isRocDeprecated(const dppCounter &counter) {
-  return ROC_DEPRECATED == (counter.supportDegree & ROC_DEPRECATED) ||
-         DEPRECATED == (counter.supportDegree & DEPRECATED);
-}
-
 bool Statistics::isDeprecated(const dppCounter &counter) {
   return DEPRECATED == (counter.supportDegree & DEPRECATED) || (
          CUDA_DEPRECATED == (counter.supportDegree & CUDA_DEPRECATED) &&
-         HIP_DEPRECATED == (counter.supportDegree & HIP_DEPRECATED) &&
-         ROC_DEPRECATED == (counter.supportDegree & ROC_DEPRECATED));
+         HIP_DEPRECATED == (counter.supportDegree & HIP_DEPRECATED));
 }
 
 bool Statistics::isCudaRemoved(const dppCounter &counter) {
@@ -468,16 +442,10 @@ bool Statistics::isHipRemoved(const dppCounter &counter) {
          REMOVED == (counter.supportDegree & REMOVED);
 }
 
-bool Statistics::isRocRemoved(const dppCounter &counter) {
-  return ROC_REMOVED == (counter.supportDegree & ROC_REMOVED) ||
-         REMOVED == (counter.supportDegree & REMOVED);
-}
-
 bool Statistics::isRemoved(const dppCounter &counter) {
   return REMOVED == (counter.supportDegree & REMOVED) || (
          CUDA_REMOVED == (counter.supportDegree & CUDA_REMOVED) &&
-         HIP_REMOVED == (counter.supportDegree & HIP_REMOVED) &&
-         ROC_REMOVED == (counter.supportDegree & ROC_REMOVED));
+         HIP_REMOVED == (counter.supportDegree & HIP_REMOVED));
 }
 
 bool Statistics::isHipSupportedV2Only(const dppCounter &counter) {

@@ -74,17 +74,6 @@ cl::opt<bool> Verbose("v",
   cl::value_desc("v"),
   cl::cat(ToolTemplateCategory));
 
-cl::opt<bool> TranslateToRoc("roc",
-  cl::desc("Translate to 'roc' instead of 'hip' where it is possible"),
-  cl::value_desc("roc"),
-  cl::cat(ToolTemplateCategory));
-
-cl::opt<bool> TranslateToMIOpen("miopen",
-  cl::desc("Translate to 'miopen' instead of 'hip' where it is possible"),
-  cl::value_desc("miopen"),
-  cl::init(false),
-  cl::cat(ToolTemplateCategory));
-
 cl::opt<bool> Inplace("inplace",
   cl::desc("Modify input file in-place"),
   cl::value_desc("inplace"),
@@ -176,11 +165,6 @@ cl::opt<std::string> DocFormat("doc-format",
   cl::value_desc("value"),
   cl::cat(ToolTemplateCategory));
 
-cl::opt<std::string> DocRoc("doc-roc",
-  cl::desc("ROC documentation generation: 'skip' (default), 'separate', or 'joint'; the '--md' or '--csv' option must be specified"),
-  cl::value_desc("value"),
-  cl::cat(ToolTemplateCategory));
-
 cl::opt<bool> Experimental("experimental",
   cl::desc("ascify DPP APIs that are experimentally supported, otherwise, the corresponding warnings will be emitted"),
   cl::value_desc("experimental"),
@@ -241,8 +225,6 @@ const std::vector<std::string> ascifyOptions {
   std::string(CudaKernelExecutionSyntax.ArgStr),
   std::string(GeneratePerl.ArgStr),
   std::string(GeneratePython.ArgStr),
-  std::string(TranslateToRoc.ArgStr),
-  std::string(TranslateToMIOpen.ArgStr),
   std::string(GenerateMarkdown.ArgStr),
   std::string(GenerateCSV.ArgStr),
   std::string(NoBackup.ArgStr),
@@ -251,7 +233,6 @@ const std::vector<std::string> ascifyOptions {
   std::string(Examine.ArgStr),
   std::string(SaveTemps.ArgStr),
   std::string(DocFormat.ArgStr),
-  std::string(DocRoc.ArgStr),
   std::string(Experimental.ArgStr),
   std::string(Versions.ArgStr),
   std::string(NoUndocumented.ArgStr),

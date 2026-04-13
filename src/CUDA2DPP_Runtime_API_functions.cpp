@@ -27,9 +27,9 @@ using SEC = runtime::CUDA_RUNTIME_API_SECTIONS;
 // Map of all CUDA Runtime API functions
 const std::map<llvm::StringRef, dppCounter> CUDA_RUNTIME_FUNCTION_MAP = [] {
   std::map<llvm::StringRef,  dppCounter> m;
-  m["cudaMalloc"]                                              = {"aclrtMalloc",                                              "", CONV_MEMORY, API_RUNTIME, SEC::MEMORY};
-  m["cudaFree"]                                              = {"aclrtFree",                                              "", CONV_MEMORY, API_RUNTIME, SEC::MEMORY};
-  m["cudaMemcpy"]                                              = {"aclrtMemcpy",                                              "", CONV_MEMORY, API_RUNTIME, SEC::MEMORY};
+  m["cudaMalloc"]                                              = {"aclrtMalloc",                                            CONV_MEMORY, API_RUNTIME, SEC::MEMORY};
+  m["cudaFree"]                                              = {"aclrtFree",                                               CONV_MEMORY, API_RUNTIME, SEC::MEMORY};
+  m["cudaMemcpy"]                                              = {"aclrtMemcpy",                                              CONV_MEMORY, API_RUNTIME, SEC::MEMORY};
   // TODO: Add cuda runtime API functions here  
   return m;
 }();
