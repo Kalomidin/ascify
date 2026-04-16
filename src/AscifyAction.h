@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 #pragma once
 
+#include <deque>
 #include "clang/Lex/PPCallbacks.h"
 #include "clang/Tooling/Tooling.h"
 #include "clang/Tooling/Core/Replacement.h"
@@ -64,10 +65,16 @@ private:
   bool pragmaOnce = false;
   clang::SourceLocation firstHeaderLoc;
   clang::SourceLocation pragmaOnceLoc;
+  std::deque<clang::Token> rawTokenWindow;
+  static constexpr std::size_t kRawTokenWindowCap = 128;
   // Rewrite a string literal to refer to hip, not CUDA.
   void RewriteString(StringRef s, clang::SourceLocation start);
   // Replace a CUDA identifier with the corresponding hip identifier, if applicable.
-  void RewriteToken(const clang::Token &t);
+  // Returns true if the raw lexer was advanced past rewritten text; the caller must not
+  // call LexFromRawLexer for the current token again.
+  bool RewriteToken(clang::Lexer &rawLex, clang::Token &tok);
+  // `double *C = (double*)malloc(bytes);` -> `double *C;\naclrtMalloc(C, bytes);`
+  bool tryRewriteMallocDeviceAllocDecl(clang::Lexer &lex, clang::Token &tok);
   // Calculate str's SourceLocation in SourceRange sr
   clang::SourceLocation GetSubstrLocation(const std::string &str, const clang::SourceRange &sr);
 
