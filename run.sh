@@ -1,0 +1,1 @@
+/home/ascify/build_docker/build/ascify-clang $1 --clang-resource-directory=/home/llvm-project/build_docker/build/lib/clang/23
